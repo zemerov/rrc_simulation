@@ -100,13 +100,14 @@ class SACAgent:
         dones = torch.FloatTensor(dones).to(self.device)
         dones = dones.view(dones.size(0), -1)
 
-        next_actions, next_log_pi = self.policy_net.sample(next_states)
-        next_actions = next_actions.cuda() #to(self.device)
-        next_log_pi = next_log_pi.cuda()  # to(self.device)
-        next_q1 = self.target_q_net1(next_states, next_actions)
-        next_q2 = self.target_q_net2(next_states, next_actions)
-        next_q_target = torch.min(next_q1, next_q2) - self.alpha * next_log_pi
-        expected_q = rewards + (1 - dones) * self.gamma * next_q_target
+        with torch.no_grad():
+            next_actions, next_log_pi = self.policy_net.sample(next_states)
+            next_actions = next_actions.cuda() #to(self.device)
+            next_log_pi = next_log_pi.cuda()  # to(self.device)
+            next_q1 = self.target_q_net1(next_states, next_actions)
+            next_q2 = self.target_q_net2(next_states, next_actions)
+            next_q_target = torch.min(next_q1, next_q2) - self.alpha * next_log_pi
+            expected_q = rewards + (1 - dones) * self.gamma * next_q_target
 
         # q loss
         curr_q1 = self.q_net1.forward(states, actions)
