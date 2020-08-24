@@ -4,7 +4,6 @@ import gym
 import numpy as np
 import itertools
 import torch
-from tensorboardX import SummaryWriter
 import json
 
 import rrc_simulation
@@ -54,11 +53,13 @@ if __name__ == '__main__':
                         help='Value target update per no. of updates per step (default: 1)')
     parser.add_argument('--replay_size', type=int, default=1000000, metavar='N',
                         help='size of replay buffer (default: 10000000)')
-    parser.add_argument('--cuda', action="store_true",
-                        help='run on CUDA (default: False)')
+    parser.add_argument('--device', type=str, default='cpu',
+                        help='Device to run on')
     parser.add_argument('--save', action="store_true",
                         help='save model parameters (default: False)')
     parser.add_argument('--load_path', default=None)
+    parser.add_argument('--path', default='sac')
+    parser.add_argument('--tensorboard', action='store_true')
     args = parser.parse_args()
 
     # Environment
@@ -72,7 +73,7 @@ if __name__ == '__main__':
         visualization=False,
     )
 
-    # print(np.concatenate([env.action_space['position'].high, env.action_space['torque'].high]))
+    #cprint(np.concatenate([env.action_space['position'].high, env.action_space['torque'].high]))
     # print(env.action_space['torque'].high, env.action_space['torque'].low)
 
     torch.manual_seed(args.seed)
@@ -80,15 +81,17 @@ if __name__ == '__main__':
     env.seed(args.seed)
 
     obs_dim = 41
-    # Agent def __init__(self, env, gamma, tau, alpha, q_lr, policy_lr, a_lr, buffer_maxlen):
-    agent = SACAgent(env, args.gamma, args.tau, args.alpha, args.lr, args.replay_size, obs_dim, 18)
+    agent = SACAgent(
+        env, args.gamma, args.tau, args.alpha, args.lr, args.replay_size, obs_dim, 18, args.device
+    )
 
-    if args.load_path is not None:
-        agent.load(args.load_path)  # Load model params
+    if args.path is not None:
+        agent.load('models/' + args.load_path)  # Load model params
 
-    #TesnorboardX
-    # writer = SummaryWriter(logdir='logs/{}_SAC_{}_{}_{}'.format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"), args.env_name,
-    #                                                            args.policy, "autotune" if args.automatic_entropy_tuning else ""))
+    if args.tensorboard:
+        from tensorboardX import SummaryWriter
+        writer = SummaryWriter(logdir='logs/{}_SAC_{}_{}_{}'.format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"), args.env_name,
+                                                                args.policy, "autotune" if args.automatic_entropy_tuning else ""))
 
     # Memory
     memory = BasicBuffer(args.replay_size)
@@ -117,6 +120,8 @@ if __name__ == '__main__':
                     agent.update(memory, args.batch_size)
                     #critic_1_loss, critic_2_loss, policy_loss, ent_loss, alpha = agent.update_parameters(memory, args.batch_size, updates)
 
+                    if args.tensorboard:
+                        pass
                     #writer.add_scalar('loss/critic_1', critic_1_loss, updates)
                     #writer.add_scalar('loss/critic_2', critic_2_loss, updates)
                     #writer.add_scalar('loss/policy', policy_loss, updates)
@@ -142,9 +147,11 @@ if __name__ == '__main__':
         if total_numsteps > args.num_steps:
             break
 
-        #writer.add_scalar('reward/train', episode_reward, total_numsteps)
-        #writer.add_scalar('success/train', episode_success, total_numsteps)
-        print("Episode: {}, total numsteps: {}, episode steps: {}, reward: {}, success: {}".format(i_episode, total_numsteps, episode_steps, round(episode_reward, 2), episode_success))
+        if args.tensorboard:
+            writer.add_scalar('reward/train', episode_reward, total_numsteps)
+        # writer.add_scalar('success/train', episode_success, total_numsteps)
+        if i_episode % 20 == 0:
+            print("Episode: {}, total numsteps: {}, episode steps: {}, reward: {}, success: {}".format(i_episode, total_numsteps, episode_steps, round(episode_reward, 2), episode_success))
 
         if i_episode % 100 == 0:
             avg_reward = 0.
@@ -165,11 +172,12 @@ if __name__ == '__main__':
 
             avg_reward /= episodes
 
-            #writer.add_scalar('reward/test', avg_reward, total_numsteps)
-            #writer.add_scalar('success/test', avg_success, total_numsteps)
+            if args.tensorboard:
+                writer.add_scalar('reward/test', avg_reward, total_numsteps)
+
             if args.save:
                 print('Save model to models')
-                agent.save('models/basic_')
+                agent.save('models/' + args.path)
 
             print("----------------------------------------")
             print("Test Episodes: {}, Avg. Reward: {}".format(episodes, round(avg_reward, 2)))

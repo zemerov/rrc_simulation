@@ -7,18 +7,23 @@ import numpy as np
 from models import SoftQNetwork, PolicyNetwork
 from replay_memory import BasicBuffer
 
+
 def action_to_dict(action: np.array):
     dict_action = {'position': action[:9], 'torque': action[9:]}
 
     return dict_action
 
+
 class SACAgent:
-    def __init__(self, env, gamma, tau, alpha, lr, buffer_maxlen, obs_dim=None, action_space_size=None):
+    def __init__(self,
+                 env, gamma, tau, alpha, lr,
+                 buffer_maxlen, obs_dim=None,
+                 action_space_size=None, device='cpu'):
         q_lr = lr
         policy_lr = lr
         a_lr = lr
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
 
         self.env = env
         self.action_range = [
@@ -148,10 +153,14 @@ class SACAgent:
 
     def save(self, path):
         torch.save(self.policy_net, path + 'policy_net')
-        torch.save(self.q_net1 , path + 'q_net1')
+        torch.save(self.q_net1, path + 'q_net1')
         torch.save(self.q_net2, path + 'q_net2')
         torch.save(self.target_q_net1, path + 'target_q_net1')
         torch.save(self.target_q_net2, path + 'target_q_net2')
 
     def load(self, path):
-        pass
+        self.policy_net = torch.load(path + 'policy_net')
+        self.q_net1 = torch.load(path + 'q_net1')
+        self.q_net2 = torch.load(path + 'q_net2')
+        self.target_q_net1 = torch.load(path + 'target_q_net1')
+        self.target_q_net2 = torch.load(path + 'target_q_net2')
