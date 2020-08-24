@@ -161,7 +161,7 @@ if __name__ == '__main__':
                 writer.add_scalar('reward/test', avg_reward, total_numsteps)
 
             if args.save:
-                agent.save('models/' + args.path)
+                agent.save()
 
             print("----------------------------------------")
             print("Test Episodes: {}, Avg. Reward: {}".format(episodes, round(avg_reward, 2)))
