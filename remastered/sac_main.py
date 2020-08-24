@@ -61,10 +61,11 @@ if __name__ == '__main__':
     parser.add_argument('--path', default='sac')
     parser.add_argument('--tensorboard', action='store_true')
     parser.add_argument('--hidden_size', type=int, default='256')
+    parser.add_argument('--difficulty', type=int, default='1')
     args = parser.parse_args()
 
     # Environment
-    initializer = cube_env.RandomInitializer(difficulty=1)
+    initializer = cube_env.RandomInitializer(difficulty=args.difficulty)
 
     env = gym.make(
         "rrc_simulation.gym_wrapper:real_robot_challenge_phase_1-v1",
@@ -161,7 +162,7 @@ if __name__ == '__main__':
                 writer.add_scalar('reward/test', avg_reward, total_numsteps)
 
             if args.save:
-                agent.save()
+                agent.save_model('CubeEnv_diff_1')
 
             print("----------------------------------------")
             print("Test Episodes: {}, Avg. Reward: {}".format(episodes, round(avg_reward, 2)))
