@@ -162,7 +162,7 @@ if __name__ == '__main__':
                 writer.add_scalar('reward/test', avg_reward, total_numsteps)
 
             if args.save:
-                agent.save_model('CubeEnv_diff_1')
+                agent.save_model('CubeEnv_diff_' + str(args.difficulty))
 
             print("----------------------------------------")
             print("Test Episodes: {}, Avg. Reward: {}".format(episodes, round(avg_reward, 2)))
