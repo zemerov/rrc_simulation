@@ -104,7 +104,7 @@ if __name__ == '__main__':
                 action = env.action_space.sample()  # Sample random action
                 action = np.concatenate([action['position'], action['torque']])
             else:
-                action = agent.get_action(state)  # Sample action from policy
+                action = agent.select_action(state)  # Sample action from policy
 
             if len(memory) > args.batch_size:
                 for i in range(args.updates_per_step):  # Number of updates per step in environment
@@ -147,7 +147,7 @@ if __name__ == '__main__':
                 episode_reward = 0
                 done = False
                 while not done:
-                    action = agent.get_action(state)
+                    action = agent.select_action(state, evaluate=True)
                     next_state, reward, done, info = env.step(action_to_dict(action))
                     next_state = get_arr_observation(next_state)
 
