@@ -23,7 +23,7 @@ class SACAgent:
         policy_lr = lr
         a_lr = lr
 
-        self.device = device
+        self.device = torch.device(device)
 
         self.env = env
         self.action_range = [
