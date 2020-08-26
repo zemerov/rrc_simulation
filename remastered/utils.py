@@ -11,12 +11,12 @@ def action_to_dict(action: np.array):
     return dict_action
 
 
-def policy_factory(model_path, env):
+def policy_factory(model_path, env, obs_dim, action_space):
     agent = GaussianPolicy(
-        env.observation_space.shape[0],
-        env.action_space.shape[0],
+        obs_dim,
+        action_space,
         256,
-        env.action_space
+        env
     ).to('cpu')
 
     agent.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
@@ -56,3 +56,11 @@ def soft_update(target, source, tau):
 def hard_update(target, source):
     for target_param, param in zip(target.parameters(), source.parameters()):
         target_param.data.copy_(param.data)
+
+def get_arr_observation(observation):
+    values = []
+
+    for i in range(len(observation)):
+        values.append(np.concatenate(list(list(observation.values())[i].values())))
+
+    return np.concatenate(values)

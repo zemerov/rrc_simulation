@@ -9,23 +9,16 @@ import json
 import rrc_simulation
 from rrc_simulation.gym_wrapper.envs import cube_env
 
-
 from sac import SAC
 from utils import action_to_dict
 from replay_memory import ReplayMemory
 
-
-def get_arr_observation(observation):
-    values = []
-
-    for i in range(len(observation)):
-        values.append(np.concatenate(list(list(observation.values())[i].values())))
-
-    return np.concatenate(values)
+from utils import get_arr_observation
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Soft Actor-Critic Args')
+
     parser.add_argument('--policy', default="Gaussian",
                         help='Policy Type: Gaussian | Deterministic (default: Gaussian)')
     parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
@@ -139,7 +132,7 @@ if __name__ == '__main__':
         if i_episode % 20 == 0:
             print("Episode: {}, total numsteps: {}, episode steps: {}, reward: {}, success: {}".format(i_episode, total_numsteps, episode_steps, round(episode_reward, 2), episode_success))
 
-        if i_episode % 100 == 0:
+        if i_episode % 1 == 0:
             avg_reward = 0.
             avg_success = 0.
             episodes = 10
